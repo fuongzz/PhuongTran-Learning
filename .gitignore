@@ -1,0 +1,47 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# ===== Virtual environments =====
+.venv/
+venv/
+env/
+ENV/
+
+# ===== Jupyter =====
+.ipynb_checkpoints/
+
+# ===== Secrets & config =====
+.env
+.env.*
+*.key
+secrets.json
+
+# ===== IDE =====
+.vscode/
+.idea/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Data / model files (thường rất lớn, không nên đẩy lên GitHub) =====
+*.csv
+*.parquet
+*.h5
+*.pkl
+*.pt
+*.pth
+*.onnx
+data/
+datasets/
+models/
+checkpoints/
+
+# ===== Logs =====
+*.log
+logs/
