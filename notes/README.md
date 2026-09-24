@@ -8,6 +8,7 @@ Ghi chú tổng hợp từ video, blog, podcast, sách, short course — những
 |---|---|
 | `learning-methods/` | Cách học, tự học, năng suất |
 | `career/` | Nghề developer, thị trường, AI & việc làm |
+| `skills/` | Bộ kỹ năng cụ thể cần học cho một vai trò / lĩnh vực |
 | `templates/` | Form mẫu cho từng loại nguồn: `video.md`, `article.md`, `book.md`, `short-course.md` |
 | `reading_list.md` | Nhật ký mọi nguồn đã xem / đọc, mới nhất ở trên |
 
