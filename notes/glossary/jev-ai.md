@@ -1,52 +1,129 @@
 # Jev AI
 
-- **Loại:** Kỹ thuật chuyên sâu — **⚠️ CHƯA XÁC MINH ĐỘC LẬP**
+- **Loại:** Kỹ thuật chuyên sâu
 - **Ngày tạo:** 2026-09-30
-- **Chủ đề:** ai-agent, model-routing
+- **Cập nhật:** 2026-10-03 — xác minh lại nguồn; bổ sung nội dung video IBM Technology
+- **Chủ đề:** ai-agent, model-routing, calibration, guardrails
 
-> ⚠️ **Cảnh báo độ tin cậy:** Các nguồn tìm được đều xuất hiện đồng loạt trong một khoảng thời gian ngắn (huggingface blog, langchain blog, vercel, mindstudio, medium, substack, một trang "Wikipedia"), mô tả rất trơn tru và khớp nhau bất thường về một công ty/mô hình rất mới ("TypeSafe AI", ra mắt 15/9/2026). Khi kiểm tra chéo, chính nội dung "Wikipedia" tự nhận xét ngày phát hành tương lai "gợi ý đây là tài liệu hư cấu" (fictional documentation). Chưa tìm được nguồn độc lập, đáng tin cậy bên ngoài cụm này (Forbes/TechCrunch chỉ được *nhắc tên*, chưa xác minh bài gốc). **Nhiều khả năng đây là nội dung hư cấu/marketing/thử nghiệm, không phải một sản phẩm AI đã xác lập.** Đọc phần dưới như mô tả *theo nguồn tự nhận*, không phải sự thật đã kiểm chứng.
+> ✅ **Công ty và mô hình: đã xác minh là có thật.** Cảnh báo *"nhiều khả năng là nội dung hư cấu"* trong bản note ngày 30/09 là **quá nặng và đã được sửa**. Bằng chứng:
+> - Thông cáo báo chí qua **Business Wire** (15/09/2026), được Morningstar và Yahoo Finance syndicate: TypeSafe AI ra khỏi stealth với **40 triệu USD seed do DCVC dẫn dắt**, valuation khoảng 200 triệu USD.
+> - Có **profile trên PitchBook, Tracxn, stockanalysis.com** — các nền tảng dữ liệu tài chính chỉ lập hồ sơ cho công ty thật.
+> - **Nhà sáng lập:** Diogo Almeida (cựu researcher OpenAI, có tên trong công trình RLHF/InstructGPT), cùng Erik Gafni và Sasha Sheng.
+> - **Video giải thích của IBM Technology** (Martin Keen, 01/10/2026) — nguồn độc lập đầu tiên ngoài cụm blog. Đã xác nhận kênh qua ảnh chụp màn hình.
+>
+> ⚠️ **Vẫn còn ba thứ CHƯA được kiểm chứng độc lập:**
+> 1. **Mọi con số hiệu năng** (200x nhanh hơn, 400x rẻ hơn, 70–500ms) đến từ chính công ty. Video IBM chỉ nói *"nhanh và rẻ hơn LLM cho loại câu hỏi này"*, **không** đưa con số nào. Chưa có benchmark của bên thứ ba.
+> 2. **Kiến trúc mô hình**: chính video IBM nói *TypeSafe chưa công bố nhiều về kiến trúc của Jev*. Mọi mô tả bên trong đều là những gì công ty tự nói.
+> 3. Tin *"đang đàm phán gọi hơn 1 tỷ USD ở valuation trên 10 tỷ"* chỉ thấy ở nguồn chất lượng thấp — **chưa đáng tin**.
 
 ## Định nghĩa ngắn gọn
 
-Theo các nguồn (chưa kiểm chứng): Jev là một mô hình AI độc quyền của công ty "TypeSafe AI", không sinh văn bản tự nhiên như LLM mà trả về giá trị có kiểu dữ liệu (typed values) kèm xác suất/độ tin cậy — được mô tả như một "lớp quyết định" (decision layer) tốc độ cao cho phân loại, định tuyến, chấm điểm trong ứng dụng.
+Jev là mô hình đầu tiên trong dòng **"System One"** của công ty **TypeSafe AI** (ra mắt 15/09/2026). Nó **không sinh văn bản**: bạn gửi vào một *trạng thái* + các *câu hỏi có kiểu dữ liệu*, nó trả về **xác suất** cho từng câu trả lời — và các xác suất đó được huấn luyện để **khớp với tỷ lệ đúng thực tế** (calibrated). Một "lớp quyết định" để code dùng trực tiếp, thay vì phải parse text do LLM sinh ra.
 
 ## Giải thích chi tiết
-- Được định vị (theo marketing) là "System One model" — đối lập với LLM "System Two" tốn kém, chậm — nhằm giải quyết vấn đề chi phí/độ trễ khi dùng LLM đầy đủ cho các quyết định đơn giản, lặp lại.
-- Công ty tự nhận huấn luyện bằng "Reinforcement Learning for Calibrated Decisions (RLCD)" trên dữ liệu tổng hợp, tối ưu xác suất theo kết quả thực tế thay vì theo sở thích người đánh giá.
-- Các chỉ số hiệu năng (200x nhanh hơn, 400x rẻ hơn) do chính đội ngũ công ty tạo ra và công bố — không có bên thứ ba kiểm chứng.
+
+### System 1 vs System 2
+- Tên lấy từ sách *Thinking, Fast and Slow* của Daniel Kahneman. **System 1**: nhanh, tự động — "2 × 2 = ?" bạn biết ngay là 4. **System 2**: chậm, có chủ đích — "17 × 24 = ?" phải tính từng bước.
+- Chatbot sinh câu trả lời từng token một. Reasoning model còn viết ra cả chain of thought — đó là thứ gần System 2 nhất mà AI có.
+- Nhưng **rất nhiều quyết định trong phần mềm không cần System 2** — chúng chỉ là phán đoán nhanh. Jev được làm cho đúng loại việc đó.
+
+### Ba cách huấn luyện bằng reinforcement learning
+Hầu hết LLM qua hai giai đoạn: **pre-training** (đọc lượng text khổng lồ, học đoán token tiếp theo) → **post-training** (thường dùng reinforcement learning: model trả lời, *thứ gì đó* chấm điểm, model bị đẩy về phía câu trả lời điểm cao). Khác nhau ở chỗ *ai chấm*:
+
+| Kỹ thuật | Ai chấm điểm | Hệ quả |
+|---|---|---|
+| **RLHF** — RL from Human Feedback | Người chấm chọn câu trả lời thích hơn → train reward model | Người thích câu nghe tự tin → model **học cách nghe chắc chắn kể cả khi sai** |
+| **RLVR** — RL with Verifiable Rewards | Tự động: bài toán đúng không, code pass unit test không | Lý do reasoning model giỏi toán & code. Nhưng chỉ thưởng *đáp án đúng*, **không thưởng việc biết mình chắc đến đâu**; lại chậm và đắt vì chain of thought |
+| **RLCD** — RL for Calibrated Decisions | Thưởng khi **xác suất model đưa ra khớp với thực tế** | Đây là cách Jev được train |
+
+### Calibration nghĩa là gì
+Vẽ biểu đồ: trục ngang là xác suất model đưa ra, trục dọc là tỷ lệ model thực sự đúng. Model calibrate tốt sẽ nằm trên **đường chéo**: khi nó nói 80%, nó đúng khoảng 80% số lần.
+
+Đây là điểm mấu chốt so với LLM: bạn có thể *hỏi* LLM nó chắc bao nhiêu phần trăm, nhưng con số nó nói ra **không nhất thiết khớp** với xác suất thật mà nó dùng để ra câu trả lời.
 
 ## Cơ chế hoạt động
-- Input: một khối **trạng thái** (state — chuỗi, JSON, hoặc mảng văn bản) + một hoặc nhiều **câu hỏi có kiểu** (typed questions).
-- Mô hình đánh giá tất cả câu hỏi trên cùng trạng thái trong **một lượt xử lý song song** (single parallel pass), 70–500ms.
-- Ba loại câu hỏi (primitives):
-  - **Choice**: chọn 1 trong các lựa chọn định sẵn, kèm xác suất từng lựa chọn.
-  - **Score**: chấm điểm theo thang đo có thứ tự.
-  - **Noul**: câu hỏi đúng/sai, trả về xác suất.
-- Vì output luôn theo schema định trước, nguồn tự nhận điều này giúp giảm lỗi định dạng/"hallucination" so với LLM sinh text tự do.
+
+**Input gồm hai thứ, gửi trong một request duy nhất:**
+- **State** — dữ liệu mà quyết định xoay quanh. Ví dụ: email hỗ trợ + lịch sử giao dịch gần đây của khách.
+- **Các câu hỏi**, mỗi câu một kiểu:
+
+| Kiểu | Hỏi gì | Output |
+|---|---|---|
+| **Choice** | Chọn 1 trong danh sách cho trước | Một xác suất cho **mỗi** lựa chọn. Chỉ có thể là các lựa chọn bạn đưa vào — không bịa thêm được |
+| **Score** | Chấm trên thang có thứ tự (vd. low → critical) | Vị trí trên thang |
+| **Bool** *(?)* | Đúng / sai | Một con số, vd. 0.9 = 90% là "đúng" |
+
+> ⚠️ **Tên kiểu đúng/sai vẫn chưa chắc.** Bản note cũ ghi "Noul", transcript tự động của video IBM ghi "null". Cả hai rất có thể là lỗi nghe/chép của chữ **"bool"** khi đọc thành tiếng — nhưng đây là suy luận. Cần đối chiếu doc gốc của TypeSafe.
+
+**Vì sao nhanh hơn:** LLM phải viết JSON ra từng token một. Jev không sinh text, nên **cả ba câu trả lời về cùng lúc**.
+
+**Model vẫn có thể sai** — chọn nhầm hay chấm lệch. Nhưng xác suất cho bạn biết khả năng sai là bao nhiêu.
 
 ## Ví dụ cụ thể
 
-Theo nguồn: phân loại một ticket hỗ trợ có khẩn cấp không.
-```json
-{
-  "state": "Tôi đã cố kết nối Stripe 3 ngày mà không được...",
-  "questions": {
-    "is_urgent": "Tin nhắn này có truyền đạt tính khẩn cấp không?"
-  }
-}
+Email: *"Tháng này tôi bị trừ tiền hai lần, sửa giúp tôi."* Phần mềm cần trả lời ba câu:
+
+| Câu hỏi | Kiểu | Kết quả (minh họa trong video) |
+|---|---|---|
+| Đây có phải yêu cầu hoàn tiền? | Bool | 0.9 |
+| Team nào xử lý? (billing / technical / sales) | Choice | billing: 0.85 |
+| Mức độ khẩn cấp? | Score | khoảng high → critical |
+
+### Dùng xác suất để viết code: thiết kế ngưỡng (threshold)
+
+Đây là phần thực tế nhất của video:
+
 ```
-Kết quả trả về: xác suất khẩn cấp ~99.9%.
+xác suất ≥ 0.9         → tự động: đưa thẳng vào hàng đợi hoàn tiền
+0.1 < xác suất < 0.9   → không chắc: chuyển cho người kiểm tra
+xác suất ≤ 0.1         → không phải hoàn tiền, bỏ qua
+```
+
+Vì xác suất đã được calibrate, **ngưỡng cũng cho biết đại khái nhánh tự động sẽ sai bao nhiêu lần**. Quy tắc: **sai càng đắt, ngưỡng đặt càng cao.**
 
 ## Ứng dụng thực tế
-- **Model routing**: dùng Jev để đánh giá độ phức tạp của yêu cầu, từ đó định tuyến sang mô hình nhanh/rẻ hay mô hình mạnh/đắt.
-- **Guardrail trong AI agent**: kiểm tra một hành động/tool call có rủi ro trước khi cho thực thi ("gating tool calls").
-- Cả hai use case đều nằm trong phạm vi khái niệm **AI harness** — lớp điều phối bao quanh model chính để kiểm soát hành vi agent.
+- **Phân loại / định tuyến** — ví dụ email hỗ trợ ở trên; định tuyến yêu cầu sang model nhanh/rẻ hay model mạnh/đắt.
+- **Guardrail** — đặt quanh chatbot để kiểm tra tin nhắn đi vào/đi ra, ví dụ phát hiện jailbreak; hoặc gate tool call của agent trước khi thực thi.
+- **Workflow kết hợp với LLM**, đúng như mô hình Kahneman: `Jev phân loại email → LLM viết thư trả lời → Jev phân loại phản hồi của khách`. Phần lớn công việc chạy trên System 1 nhanh; LLM (System 2) chỉ vào cuộc khi cần suy nghĩ thật.
+- **Những chỗ LLM hiện quá chậm/đắt để đặt vào** — chấm *từng dòng* database, *từng dòng* log file.
+
+## Giới hạn (theo video IBM)
+- **Chỉ nhận input là text** (tại thời điểm video).
+- **Kém về toán và cả việc đếm** — để những việc đó cho công cụ khác.
+- **Có thể bị lừa bởi chỉ dẫn giấu trong dữ liệu nó đọc** (prompt injection) — như mọi model AI khác. Đáng chú ý vì nó lại được quảng bá làm guardrail.
+- **Không thay thế LLM.** Hai loại bổ trợ cho nhau.
+
+## Chuyện cái tên
+Jev đặt theo **William Stanley Jevons** — nhà kinh tế học năm 1865 chỉ ra rằng khi động cơ hơi nước hiệu quả hơn, nước Anh lại **dùng nhiều than hơn** (*nghịch lý Jevons*). Hàm ý: khi một phán đoán trở nên cực nhanh và cực rẻ, người ta sẽ đặt nó vào nhiều chỗ hơn chứ không phải ít đi.
 
 ## Thuật ngữ liên quan
-- [AI Harness](ai-harness.md) — Jev (theo nguồn) là một thành phần có thể dùng bên trong một AI harness để gate/route quyết định.
+- [AI Harness](ai-harness.md) — Jev là một thành phần có thể dùng bên trong một AI harness để gate/route quyết định.
+
+## Vì sao thuật ngữ này đáng theo dõi (nhưng chưa đáng học sâu)
+
+Jev ra mắt chưa đầy một tháng, chưa có benchmark độc lập, và đang ở diện waitlist. Với lộ trình trong [python-for-ai-engineer.md](../skills/python-for-ai-engineer.md), đây là thứ **ghi vào sổ để biết, không phải thứ build bây giờ**.
+
+Nhưng khái niệm nền của nó thì đáng nắm ngay, vì nó độc lập với sản phẩm:
+- **Typed / structured output** — ràng buộc model trả về đúng schema. Gặp lại ở M3–M5.
+- **Calibration** — model có biết mức độ nó không biết hay không. Chính là câu hỏi đã đặt ở M5: *"retrieve 3 chunk đều không liên quan — hệ thống có biết là nó không biết không?"*
+- **Thiết kế ngưỡng theo chi phí sai lầm** — áp dụng được cho *bất kỳ* bộ phân loại nào có điểm số, kể cả cosine similarity trong RAG của bạn.
 
 ## Nguồn tham khảo
-1. [What Is Jev AI? A Practical Guide (Hugging Face blog)](https://huggingface.co/blog/sora-2/what-is-jev-ai-a-practical-guide-to-system-one-and) — ⚠️ chưa xác minh
-2. [Jev (AI model) — "Wikipedia"](https://en.wikipedia.org/wiki/Jev_(AI_model)) — ⚠️ tự nhận xét ngày phát hành tương lai gợi ý nội dung hư cấu
-3. [What Is Jev? A Guide to TypeSafe AI's System One Model (LangChain blog)](https://www.langchain.com/blog/building-a-harness-with-jev) — ⚠️ chưa xác minh
-4. [What is Jev, TypeSafe AI's System One model? (Vercel)](https://vercel.com/i/what-is-jev) — chưa đọc chi tiết, liệt kê để tham khảo thêm
+
+### Nhóm A — Nguồn độc lập / xác lập sự thật (độ tin cậy khá)
+1. [IBM Technology — What Is Jev? The AI Model That Doesn't Generate Text](https://www.youtube.com/watch?v=YGgNBcIgI4s) — Martin Keen, 01/10/2026. Video giải thích; không phải benchmark.
+2. [TypeSafe AI Emerges From Stealth With $40M in Funding — Business Wire via Morningstar, 15/09/2026](https://www.morningstar.com/news/business-wire/20260915525333/typesafe-ai-emerges-from-stealth-with-40m-in-funding-with-new-model-for-composable-ai) — thông cáo của công ty
+3. [Bản syndicate trên Yahoo Finance](https://finance.yahoo.com/technology/ai/articles/typesafe-ai-emerges-stealth-40m-190000776.html)
+4. [PitchBook — Typesafe AI company profile](https://pitchbook.com/profiles/company/658924-30)
+5. [Tracxn — TypeSafe company profile](https://tracxn.com/d/companies/typesafe/__fPC7t2VtGOz6qF_aK5y6KzoPEZ3dCBjkFq6qQcw51_c)
+6. [FinSMEs — TypeSafe AI Raises $40M in Seed Funding](https://www.finsmes.com/2026/09/typesafe-ai-raises-40m-in-seed-funding.html)
+7. [stockanalysis.com — TypeSafe AI valuation & funding](https://stockanalysis.com/private/typesafe-ai/)
+
+### Nhóm B — Cụm blog nội dung trùng khớp (dùng để hiểu khái niệm, KHÔNG dùng để xác minh)
+8. [LangChain blog — Building a harness with Jev](https://www.langchain.com/blog/building-a-harness-with-jev)
+9. [Zapier — What Is Jev? TypeSafe AI System One Model](https://zapier.com/blog/jev/)
+10. [Firecrawl — Inside TypeSafe Decision-Only AI Model](https://www.firecrawl.dev/blog/what-is-jev)
+11. [MindStudio — Inside the AI Classifier Model Developers Are Racing to Adopt](https://www.mindstudio.ai/blog/what-is-jev-classifier-model)
+12. [Hugging Face blog — A Practical Guide to System One](https://huggingface.co/blog/sora-2/what-is-jev-ai-a-practical-guide-to-system-one-and)
+13. [daily.dev — The AI Model That Does Not Generate Text](https://daily.dev/posts/what-is-jev-the-ai-model-that-doesn-t-generate-text-jpe5yhzlr) — tiêu đề trùng với video IBM, nhiều khả năng là bài tóm tắt/repost của video
+14. [Appinventiv — Enterprise Use Cases, Limits, and Adoption](https://appinventiv.com/blog/jev-usecases-and-adoption/)
